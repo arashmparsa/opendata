@@ -1,0 +1,148 @@
+======================================================================
+DATA ANALYSIS REPORT
+Generated: 2025-12-17 23:52
+======================================================================
+
+Datasets analyzed: 9
+Data location: F:\opendata\datasets
+Visualizations: C:\Users\Guest2\Personal\Github\opendata\visualizations
+Total rows across all datasets: 283,749
+
+--------------------------------------------------
+DATASET: 2023-cev-findings-volunteering-and-civic-life-in-america-top
+--------------------------------------------------
+Rows: 15
+Columns: 2
+Memory: 0.01 MB
+
+--------------------------------------------------
+DATASET: iowa-population-by-hispanic-or-latino-origin-and-race-acs-5-
+--------------------------------------------------
+Rows: 50,000
+Columns: 12
+Memory: 33.40 MB
+
+Numeric columns (2):
+  Population Estimate: mean=3679.77, std=65187.47, min=0.00, max=3195937.00
+  Change Rate: mean=0.76, std=4.67, min=-1.00, max=223.50
+
+--------------------------------------------------
+DATASET: iowa-households-by-household-type-acs-5-year-estimates
+--------------------------------------------------
+Rows: 50,000
+Columns: 11
+Memory: 34.10 MB
+
+Numeric columns (1):
+  Households: mean=2316.59, std=27331.66, min=0.00, max=1303763.00
+
+--------------------------------------------------
+DATASET: percent-of-household-overcrowding-1-0-persons-per-room-and-s
+--------------------------------------------------
+Rows: 50,000
+Columns: 26
+Memory: 34.08 MB
+
+Numeric columns (18):
+  ind_id: mean=137.00, std=0.00, min=137.00, max=137.00
+  race_eth_code: mean=6.05, std=2.47, min=1.00, max=9.00
+  geotypevalue: mean=5115057454.71, std=2138483270.94, min=1.00, max=6115041100.00
+  county_fips: mean=6053.57, std=26.16, min=6001.00, max=6115.00
+  region_code: mean=9.56, std=5.09, min=1.00, max=14.00
+  strata_one_code: mean=nan, std=nan, min=nan, max=nan
+  strata_one_name: mean=nan, std=nan, min=nan, max=nan
+  strata_two_code: mean=nan, std=nan, min=nan, max=nan
+  strata_two_name: mean=nan, std=nan, min=nan, max=nan
+  numerator: mean=367.00, std=9479.28, min=0.00, max=1041179.00
+
+--------------------------------------------------
+DATASET: poverty-rate-200-fpl-and-child-under-18-poverty-rate-by-cali
+--------------------------------------------------
+Rows: 32,005
+Columns: 26
+Memory: 22.15 MB
+
+Numeric columns (17):
+  ind_id: mean=754.00, std=0.00, min=754.00, max=754.00
+  race_eth_code: mean=5.88, std=2.50, min=1.00, max=9.00
+  geotypevalue: mean=4414907859.59, std=2657421483.71, min=1.00, max=6115041100.00
+  county_fips: mean=6055.54, std=27.55, min=6001.00, max=6115.00
+  region_code: mean=9.40, std=5.11, min=1.00, max=14.00
+  strata_one_code: mean=2.84, std=0.54, min=1.00, max=3.00
+  strata_two_code: mean=nan, std=nan, min=nan, max=nan
+  strata_two_name: mean=nan, std=nan, min=nan, max=nan
+  numerator: mean=6087.11, std=114493.50, min=0.00, max=13615146.00
+  denominator: mean=16159.25, std=298162.20, min=1.00, max=37678735.00
+
+--------------------------------------------------
+DATASET: i16-census-place-economicallydistressedareas-2023
+--------------------------------------------------
+Rows: 1,618
+Columns: 23
+Memory: 0.78 MB
+
+Numeric columns (17):
+  OBJECTID: mean=809.50, std=467.22, min=1.00, max=1618.00
+  PLACEFP: mean=42369.22, std=25146.19, min=135.00, max=87090.00
+  GEOID: mean=642369.22, std=25146.19, min=600135.00, max=687090.00
+  ALAND: mean=24215424.76, std=52533590.15, min=18565.00, max=1218633372.00
+  AWATER: mean=1579429.10, std=14569421.11, min=0.00, max=479702222.00
+  INTPTLAT: mean=36.93, std=2.36, min=32.57, max=41.99
+  INTPTLON: mean=-120.18, std=2.05, min=-124.26, max=-114.26
+  Pop23: mean=23151.81, std=115211.98, min=0.00, max=3857897.00
+  HH23: mean=7935.58, std=42087.57, min=0.00, max=1419663.00
+  LandSqMile: mean=9.35, std=20.28, min=0.01, max=470.52
+
+--------------------------------------------------
+DATASET: blm-ak-water-lua-c0b9d
+--------------------------------------------------
+Rows: 111
+Columns: 11
+Memory: 0.06 MB
+
+Numeric columns (4):
+  OBJECTID: mean=56.00, std=32.19, min=1.00, max=111.00
+  CASETYPE_CODE: mean=287036.76, std=96.34, min=287001.00, max=287300.00
+  SHAPE_Length: mean=8680.07, std=8063.04, min=416.86, max=80000.70
+  SHAPE_Area: mean=8479597.65, std=37869156.96, min=10860.93, max=400004186.76
+
+--------------------------------------------------
+DATASET: places-local-data-for-better-health-place-data-2020-release-
+--------------------------------------------------
+Rows: 50,000
+Columns: 22
+Memory: 42.05 MB
+
+Numeric columns (9):
+  Year: mean=2022.85, std=0.35, min=2022.00, max=2023.00
+  Data_Value: mean=26.00, std=22.67, min=0.70, max=93.00
+  Data_Value_Footnote_Symbol: mean=nan, std=nan, min=nan, max=nan
+  Data_Value_Footnote: mean=nan, std=nan, min=nan, max=nan
+  Low_Confidence_Limit: mean=23.64, std=21.75, min=0.60, max=91.90
+  High_Confidence_Limit: mean=28.44, std=23.54, min=0.70, max=94.00
+  TotalPop18plus: mean=6853.04, std=27830.98, min=50.00, max=630174.00
+  TotalPopulation: mean=8767.53, std=33599.79, min=56.00, max=737015.00
+  LocationID: mean=5353716.46, std=34461.87, min=5301255.00, max=5430724.00
+
+--------------------------------------------------
+DATASET: places-local-data-for-better-health-census-tract-data-2020-r
+--------------------------------------------------
+Rows: 50,000
+Columns: 24
+Memory: 42.43 MB
+
+Numeric columns (11):
+  Year: mean=2022.88, std=0.33, min=2022.00, max=2023.00
+  CountyFIPS: mean=1282.63, std=1383.06, min=1001.00, max=17031.00
+  LocationName: mean=1282817700.50, std=1383054059.62, min=1001020100.00, max=17031826301.00
+  Data_Value: mean=27.42, std=22.98, min=0.40, max=93.80
+  Data_Value_Footnote_Symbol: mean=nan, std=nan, min=nan, max=nan
+  Data_Value_Footnote: mean=nan, std=nan, min=nan, max=nan
+  Low_Confidence_Limit: mean=24.63, std=21.95, min=0.30, max=92.90
+  High_Confidence_Limit: mean=30.31, std=23.96, min=0.40, max=94.70
+  TotalPopulation: mean=3544.52, std=1524.07, min=62.00, max=13632.00
+  TotalPop18plus: mean=2762.69, std=1164.59, min=56.00, max=10105.00
+
+======================================================================
+END OF REPORT
+======================================================================
