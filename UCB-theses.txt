@@ -1,0 +1,36 @@
+I need the PDF for all these papers or their links 
+
+Deep Reinforcement Learning for Autonomous Vehicle Traffic Control and Stabilization: From Simulation to a 100-Vehicle Highway Field Deployment (https://www2.eecs.berkeley.edu/Pubs/TechRpts/2024/EECS-2024-66.pdf)
+
+Deep Generative Priors for View Synthesis at Scale (https://www2.eecs.berkeley.edu/Pubs/TechRpts/2025/EECS-2025-170.pdf)
+
+Generalizing Beyond the Training Data: New Theory and Algorithms for Optimal Transfer Learning (https://www2.eecs.berkeley.edu/Pubs/TechRpts/2025/EECS-2025-137.pdf)
+
+
+Language Models as Rational Agents
+
+Modeling and Interpreting Genome Evolution at Multiple Timescales
+
+Pre-Training on Observational Data with Reinforcement Learning
+
+Towards Cloud-Assisted Autonomous Driving
+
+Accelerating Randomized Numerical Linear Algebra on a Short-Vector Machine
+
+Learning to Drive by Imitating Surrounding Vehicles
+
+Accented Non-Autoregressive Text to Speech via Articulatory Features
+
+Auxiliary States for Decentralized Optimization in Probabilistic Communication Networks
+
+Benchmarking LLMs on Advanced Mathematical Reasoning
+
+Chip Placement with Diffusion Models
+
+DiT-Serve and DeepCoder: Enabling Video and Code Generation at Scale
+
+Improving LLM Performance in Generating Verilog by Fine Tuning with a Translated Code Dataset
+
+Interpreting and Editing Vision-Language Representations to Mitigate Hallucinations
+
+Robust Multimodal Perception Stack for High-Speed Autonomous Racecars

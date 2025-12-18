@@ -1,0 +1,94 @@
+Data.gov Is a Metadata Catalog, Not a Data Warehouse
+Data.gov and the data.gov CKAN API only contain Data.gov metadata about datasets. This metadata includes URLs and descriptions of datasets, but it does not include the actual data within each dataset.
+So the ~370,000 datasets are links to data hosted across hundreds of agency servers.
+Actual Federal Data Volumes (Major Agencies)
+AgencyData VolumeNotesNOAA (NCEI)~44 petabytes NOAAEnvironmental data, weather, oceanNOAA (Cloud/NODD)24+ petabytes publicly available NCBIStakeholders access 5+ PB/monthNASA (EOSDIS)~30 petabytes, growing to 300+ PB NASA Technical Reports ServerEarth observation satellite dataNOAA Archive Capacity>514 petabytes total capacity National Oceanic and Atmospheric AdministrationLong-term storage infrastructure
+Rough Estimate for All of Data.gov
+If you wanted to download everything linked from data.gov:
+
+Conservative estimate: 100-200 petabytes
+Realistic estimate: 200-500+ petabytes (including all satellite imagery, climate models, geospatial data)
+Just NOAA + NASA alone: ~80+ petabytes of openly accessible data
+
+That's 100,000 - 500,000 terabytes.
+
+
+High-Value Categories for ML Training
+Tier 1: Gold Standard (Large, Clean, Updated)
+1. Census & Demographics (~5,000 datasets)
+
+American Community Survey (ACS)
+Decennial Census microdata
+Population estimates by geography
+Why valuable: Labeled, structured, massive scale, updated regularly
+ML uses: Demographic prediction, geographic modeling, economic forecasting
+Sensitivity concern: Profiling, redlining, discriminatory targeting
+
+2. Weather & Climate (~20,000 datasets)
+
+NOAA daily observations (billions of records)
+Historical climate data (100+ years)
+Satellite imagery
+Why valuable: Time series, spatial data, high volume
+ML uses: Forecasting, anomaly detection, climate modeling
+Size: Petabytes (largest single category)
+
+3. Health & Epidemiology (~15,000 datasets)
+
+Medicare/Medicaid claims (aggregated)
+Disease surveillance (CDC)
+Hospital quality metrics
+Drug adverse events (FDA)
+Why valuable: Labeled outcomes, large populations
+ML uses: Risk prediction, drug discovery, resource allocation
+Sensitivity concern: Health discrimination, insurance profiling
+
+4. Transportation & Infrastructure (~8,000 datasets)
+
+Flight data (every US flight since 1987)
+Traffic counts and patterns
+Bridge/road condition assessments
+Why valuable: Complete coverage, time series
+ML uses: Optimization, predictive maintenance, routing
+Sensitivity concern: Infrastructure vulnerability mapping
+
+5. Financial & Economic (~10,000 datasets)
+
+SEC filings (structured)
+Small business loans (SBA)
+Mortgage data (HMDA)
+Consumer complaints (CFPB)
+Why valuable: Labeled outcomes, diverse features
+ML uses: Credit scoring, fraud detection, market prediction
+Sensitivity concern: Discriminatory lending models
+
+
+Tier 2: Specialized Value
+6. Geospatial/GIS (~50,000 datasets)
+
+Land use/cover
+Building footprints
+Boundaries (political, zip codes)
+Elevation models
+Why valuable: Foundation for spatial ML
+ML uses: Computer vision, routing, urban planning
+
+7. Scientific Research (~30,000 datasets)
+
+NIH-funded study data
+EPA environmental monitoring
+USGS geological surveys
+Why valuable: High quality, peer-reviewed
+ML uses: Domain-specific models
+
+8. Education (~5,000 datasets)
+
+School performance metrics
+College scorecards
+Student loan outcomes
+Why valuable: Outcome labels, longitudinal
+ML uses: Prediction, policy analysis
+
+
+Tier 3: Niche but Valuable
+CategoryKey DatasetsML ApplicationAgricultureCrop yields, soil surveysYield predictionEnergyPower plant emissions, grid dataDemand forecastingCrimeFBI UCR, local incident dataPattern detectionPatentsUSPTO full-text patentsNLP, innovation analysisContractsFederal procurement (FPDS)Pricing models
