@@ -1,31 +1,20 @@
 #!/usr/bin/env python3
 """
-Data Pipeline: Download, Analyze & Visualize
-=============================================
-Downloads census/demographics/infrastructure data from data.gov to F:/opendata
-Runs analysis and creates visualizations in C:/Users/Guest2/Personal/Github/opendata
-
-Data Location:    F:/opendata
-Output Location:  C:/Users/Guest2/Personal/Github/opendata/visualizations
-
-Requirements:
-    pip install requests pandas matplotlib seaborn tqdm
-
-Usage:
-    python data_pipeline.py
+Favorite Datasets Pipeline - Based on FAVORITE_DATASETS.md
+===========================================================
+Downloads specific datasets from data.gov matching your favorites list
+Stores data on F:/opendata, creates visualizations in GitHub repo
 """
 
-import os
 import json
 import time
 import requests
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict
 import warnings
 warnings.filterwarnings('ignore')
 
-# Data analysis & visualization
 try:
     import pandas as pd
     import matplotlib.pyplot as plt
@@ -33,59 +22,102 @@ try:
     HAS_ANALYTICS = True
 except ImportError:
     HAS_ANALYTICS = False
-    print("Install analytics packages: pip install pandas matplotlib seaborn")
+    print("Run: pip install pandas matplotlib seaborn")
 
-try:
-    from tqdm import tqdm
-    HAS_TQDM = True
-except ImportError:
-    HAS_TQDM = False
-
-
-# =============================================================================
-# CONFIGURATION
-# =============================================================================
-
-DATA_DIR = Path("F:/opendata/datasets")           # Where to store downloaded CSVs
+DATA_DIR = Path("F:/opendata/datasets")
 OUTPUT_DIR = Path("C:/Users/Guest2/Personal/Github/opendata/visualizations")
 METADATA_DIR = Path("F:/opendata/metadata")
 
-# Topics to download
-TOPICS = [
-    {
-        'name': 'Census & Population',
-        'query': 'census population county state',
-        'tags': ['census', 'population', 'demographics', 'county'],
-        'max_datasets': 3
-    },
-    {
-        'name': 'Housing & Economics',
-        'query': 'housing income poverty economic',
-        'tags': ['housing', 'income', 'poverty', 'economic'],
-        'max_datasets': 3
-    },
-    {
-        'name': 'Infrastructure & Utilities',
-        'query': 'infrastructure water energy facilities',
-        'tags': ['infrastructure', 'utilities', 'energy', 'water'],
-        'max_datasets': 2
-    },
-    {
-        'name': 'Health Demographics',
-        'query': 'health population statistics county',
-        'tags': ['health', 'demographics', 'statistics'],
-        'max_datasets': 2
-    }
+# =============================================================================
+# FAVORITE DATASETS from FAVORITE_DATASETS.md
+# =============================================================================
+FAVORITE_DATASETS = [
+    # === DEMOGRAPHICS & CENSUS ===
+    {'name': 'ACS_5Year', 'label': 'American Community Survey (ACS) 5-Year',
+     'query': 'american community survey 5-year estimates', 'max': 2},
+
+    {'name': 'Decennial_Census', 'label': 'Decennial Census Summary',
+     'query': 'decennial census population summary', 'max': 1},
+
+    {'name': 'CPS_Microdata', 'label': 'Current Population Survey (CPS)',
+     'query': 'current population survey labor employment', 'max': 1},
+
+    {'name': 'County_Business', 'label': 'County Business Patterns',
+     'query': 'county business patterns establishment employment', 'max': 1},
+
+    {'name': 'LEHD_Employment', 'label': 'LEHD Employer-Household Dynamics',
+     'query': 'LEHD employment earnings workforce dynamics', 'max': 1},
+
+    # === HEALTH ===
+    {'name': 'Medicare_Provider', 'label': 'Medicare Provider Utilization & Payment',
+     'query': 'medicare provider utilization payment', 'max': 2},
+
+    {'name': 'Hospital_Compare', 'label': 'Hospital Compare Quality Measures',
+     'query': 'hospital compare quality measures ratings', 'max': 1},
+
+    {'name': 'CDC_Mortality', 'label': 'CDC WONDER Mortality Data',
+     'query': 'CDC mortality death causes statistics WONDER', 'max': 1},
+
+    {'name': 'FDA_FAERS', 'label': 'FDA Adverse Event Reporting (FAERS)',
+     'query': 'FDA adverse event drug reaction FAERS', 'max': 1},
+
+    {'name': 'NHANES_Survey', 'label': 'NHANES Health & Nutrition Survey',
+     'query': 'NHANES health nutrition examination survey', 'max': 1},
+
+    {'name': 'COVID19_Cases', 'label': 'COVID-19 Case Surveillance',
+     'query': 'COVID-19 case surveillance pandemic coronavirus', 'max': 1},
+
+    {'name': 'Medicaid_Drugs', 'label': 'Medicaid Drug Utilization',
+     'query': 'medicaid drug utilization prescription', 'max': 1},
+
+    # === FINANCIAL ===
+    {'name': 'HMDA_Mortgage', 'label': 'HMDA Mortgage Disclosure Data',
+     'query': 'HMDA mortgage home loan disclosure', 'max': 1},
+
+    {'name': 'SBA_Loans', 'label': 'SBA Loan Data (7a/504)',
+     'query': 'SBA small business loan 7a 504', 'max': 1},
+
+    {'name': 'CFPB_Complaints', 'label': 'CFPB Consumer Complaint Database',
+     'query': 'consumer complaint CFPB financial', 'max': 1},
+
+    {'name': 'SEC_EDGAR', 'label': 'SEC EDGAR Filings',
+     'query': 'SEC EDGAR filings securities', 'max': 1},
+
+    {'name': 'FDIC_Banks', 'label': 'FDIC Failed Banks List',
+     'query': 'FDIC failed bank closure list', 'max': 1},
+
+    {'name': 'USASpending', 'label': 'USASpending Federal Contracts',
+     'query': 'USASpending federal contracts spending awards', 'max': 1},
+
+    # === ECONOMIC ===
+    {'name': 'BLS_Employment', 'label': 'Bureau of Labor Statistics',
+     'query': 'BLS employment wages unemployment statistics', 'max': 2},
+
+    {'name': 'BEA_GDP', 'label': 'Bureau of Economic Analysis (GDP)',
+     'query': 'BEA GDP economic analysis regional accounts', 'max': 1},
+
+    {'name': 'FRED_Economic', 'label': 'Federal Reserve Economic Data (FRED)',
+     'query': 'FRED federal reserve economic data series', 'max': 1},
+
+    {'name': 'Trade_ImEx', 'label': 'Import/Export Trade Data',
+     'query': 'import export trade international commerce', 'max': 1},
+
+    {'name': 'Price_Index', 'label': 'Producer/Consumer Price Indices',
+     'query': 'CPI PPI price index inflation consumer producer', 'max': 1},
+
+    # === SCIENTIFIC ===
+    {'name': 'PubChem', 'label': 'PubChem Chemical Data',
+     'query': 'PubChem chemical compound data', 'max': 1},
+
+    {'name': 'USGS_Earthquake', 'label': 'USGS Earthquake Catalog',
+     'query': 'USGS earthquake seismic catalog magnitude', 'max': 1},
+
+    {'name': 'NASA_Earth', 'label': 'NASA Earth Observation Data',
+     'query': 'NASA earth observation climate satellite environment', 'max': 1},
 ]
 
 
-# =============================================================================
-# DOWNLOADER
-# =============================================================================
-
 class DataDownloader:
-    """Downloads data from data.gov API."""
-
     BASE_URL = "https://catalog.data.gov/api/3/action"
 
     def __init__(self):
@@ -93,37 +125,37 @@ class DataDownloader:
         DATA_DIR.mkdir(parents=True, exist_ok=True)
         METADATA_DIR.mkdir(parents=True, exist_ok=True)
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        self.stats = {'found': 0, 'downloaded': 0, 'failed': 0, 'skipped': 0, 'bytes': 0}
 
-    def search(self, query: str, tags: List[str], max_results: int, months_back: int = 6) -> List[Dict]:
-        """Search for recent CSV datasets."""
-        date_from = (datetime.now() - timedelta(days=months_back * 30)).strftime('%Y-%m-%d')
+    def search(self, query: str, max_results: int = 2, months: int = 6) -> List[Dict]:
+        """Search data.gov for CSV datasets from last N months."""
+        date_from = (datetime.now() - timedelta(days=months * 30)).strftime('%Y-%m-%d')
 
-        fq_parts = ['res_format:CSV']
-        if tags:
-            tag_query = ' OR '.join([f'tags:{t}' for t in tags])
-            fq_parts.append(f'({tag_query})')
-        fq_parts.append(f'metadata_modified:[{date_from}T00:00:00Z TO *]')
+        fq = f'res_format:CSV AND metadata_modified:[{date_from}T00:00:00Z TO *]'
 
         params = {
             'q': query,
-            'fq': ' AND '.join(fq_parts),
+            'fq': fq,
             'rows': max_results,
-            'sort': 'metadata_modified desc'
+            'sort': 'score desc, metadata_modified desc'
         }
 
-        time.sleep(0.5)
+        time.sleep(0.3)
         try:
             resp = self.session.get(f"{self.BASE_URL}/package_search", params=params, timeout=60)
             resp.raise_for_status()
             data = resp.json()
-            return data.get('result', {}).get('results', []) if data.get('success') else []
+            results = data.get('result', {}).get('results', []) if data.get('success') else []
+            self.stats['found'] += len(results)
+            return results
         except Exception as e:
-            print(f"  Search error: {e}")
+            print(f"    Search error: {e}")
             return []
 
-    def download_csv(self, dataset: Dict) -> Path:
+    def download(self, dataset: Dict, category: str, label: str) -> Path:
         """Download first CSV from dataset."""
-        name = dataset.get('name', 'unknown')[:60]
+        name = dataset.get('name', 'unknown')[:50]
+        title = dataset.get('title', name)
         resources = [r for r in dataset.get('resources', []) if r.get('format', '').upper() == 'CSV']
 
         if not resources:
@@ -133,362 +165,351 @@ class DataDownloader:
         if not url:
             return None
 
-        # Clean filename
         safe_name = "".join(c if c.isalnum() or c in '-_' else '_' for c in name)
-        filepath = DATA_DIR / f"{safe_name}.csv"
+        filepath = DATA_DIR / f"{category}__{safe_name}.csv"
 
         if filepath.exists():
-            print(f"    [exists] {filepath.name}")
+            print(f"    [skip] exists")
+            self.stats['skipped'] += 1
             return filepath
 
         try:
-            print(f"    Downloading: {filepath.name}")
-            resp = self.session.get(url, stream=True, timeout=120)
+            print(f"    Downloading: {title[:45]}...")
+            resp = self.session.get(url, stream=True, timeout=300)
             resp.raise_for_status()
 
             with open(filepath, 'wb') as f:
-                for chunk in resp.iter_content(chunk_size=8192):
+                for chunk in resp.iter_content(chunk_size=65536):
                     f.write(chunk)
 
-            # Save metadata
-            meta_path = METADATA_DIR / f"{safe_name}.json"
-            with open(meta_path, 'w') as f:
+            size = filepath.stat().st_size
+            self.stats['downloaded'] += 1
+            self.stats['bytes'] += size
+
+            # Save metadata with proper label
+            meta = METADATA_DIR / f"{category}__{safe_name}.json"
+            with open(meta, 'w') as f:
                 json.dump({
-                    'name': dataset.get('name'),
-                    'title': dataset.get('title'),
-                    'org': dataset.get('organization', {}).get('title'),
+                    'category': category,
+                    'label': label,  # Human-readable label from FAVORITE_DATASETS.md
+                    'title': title,
+                    'name': name,
+                    'org': dataset.get('organization', {}).get('title', 'Unknown'),
                     'modified': dataset.get('metadata_modified'),
-                    'notes': dataset.get('notes', '')[:500],
-                    'url': url
+                    'url': url,
+                    'size_mb': size / 1024 / 1024
                 }, f, indent=2)
 
+            print(f"    [done] {size / 1024 / 1024:.1f} MB")
             return filepath
+
         except Exception as e:
-            print(f"    [failed] {e}")
+            print(f"    [fail] {e}")
+            self.stats['failed'] += 1
+            if filepath.exists():
+                filepath.unlink()
             return None
 
 
-# =============================================================================
-# ANALYZER
-# =============================================================================
-
 class DataAnalyzer:
-    """Analyzes downloaded CSV files and creates visualizations."""
-
     def __init__(self):
-        self.dataframes = {}
-        self.summaries = []
+        self.data = {}
+        self.meta = {}
 
-    def load_all_csvs(self) -> Dict[str, pd.DataFrame]:
-        """Load all CSVs from data directory."""
-        csv_files = list(DATA_DIR.glob("*.csv"))
-        print(f"\nLoading {len(csv_files)} CSV files...")
+    def load_data(self):
+        """Load all CSVs and their metadata."""
+        print("\nLoading datasets...")
 
-        for csv_path in csv_files:
+        for csv_path in sorted(DATA_DIR.glob("*.csv")):
             try:
-                # Try different encodings
-                for encoding in ['utf-8', 'latin-1', 'cp1252']:
+                meta_path = METADATA_DIR / f"{csv_path.stem}.json"
+                if meta_path.exists():
+                    with open(meta_path) as f:
+                        self.meta[csv_path.stem] = json.load(f)
+
+                for enc in ['utf-8', 'latin-1', 'cp1252']:
                     try:
-                        df = pd.read_csv(csv_path, encoding=encoding, low_memory=False, nrows=50000)
+                        df = pd.read_csv(csv_path, encoding=enc, low_memory=False, nrows=50000)
                         break
-                    except UnicodeDecodeError:
+                    except:
                         continue
 
                 if len(df) > 0:
-                    self.dataframes[csv_path.stem] = df
-                    print(f"  Loaded: {csv_path.name} ({len(df)} rows, {len(df.columns)} cols)")
+                    self.data[csv_path.stem] = df
+                    meta = self.meta.get(csv_path.stem, {})
+                    label = meta.get('label', csv_path.stem)[:45]
+                    print(f"  {label}: {len(df):,} rows")
+
             except Exception as e:
-                print(f"  Failed to load {csv_path.name}: {e}")
+                print(f"  [error] {csv_path.name}: {e}")
 
-        return self.dataframes
+        return self.data
 
-    def analyze_dataset(self, name: str, df: pd.DataFrame) -> Dict[str, Any]:
-        """Generate summary statistics for a dataset."""
-        summary = {
-            'name': name,
-            'rows': len(df),
-            'columns': len(df.columns),
-            'column_names': list(df.columns),
-            'numeric_columns': list(df.select_dtypes(include=['number']).columns),
-            'missing_pct': (df.isnull().sum().sum() / (df.shape[0] * df.shape[1]) * 100),
-            'memory_mb': df.memory_usage(deep=True).sum() / (1024 * 1024)
-        }
+    def get_label(self, key: str) -> str:
+        """Get human-readable label from metadata."""
+        meta = self.meta.get(key, {})
+        return meta.get('label', meta.get('title', key.split('__')[-1]))[:45]
 
-        # Basic stats for numeric columns
-        numeric_df = df.select_dtypes(include=['number'])
-        if len(numeric_df.columns) > 0:
-            summary['numeric_stats'] = numeric_df.describe().to_dict()
+    def get_category(self, key: str) -> str:
+        """Get category from metadata."""
+        return self.meta.get(key, {}).get('category', key.split('__')[0])
 
-        return summary
-
-    def create_overview_viz(self):
-        """Create overview visualization of all datasets."""
-        if not self.dataframes:
-            print("No data loaded for visualization")
+    def create_overview(self):
+        """Create overview with proper labels from FAVORITE_DATASETS.md."""
+        if not self.data:
             return
 
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-        fig.suptitle('Data.gov Datasets Overview', fontsize=16, fontweight='bold')
+        fig.suptitle('Favorite Datasets Overview\n(Based on FAVORITE_DATASETS.md)', fontsize=14, fontweight='bold')
 
-        # 1. Dataset sizes
+        # Group by category
+        categories = {}
+        for key in self.data:
+            cat = self.get_category(key)
+            if cat not in categories:
+                categories[cat] = []
+            categories[cat].append(key)
+
+        # 1. Datasets by category
         ax1 = axes[0, 0]
-        sizes = {k: len(v) for k, v in self.dataframes.items()}
-        names = [n[:25] + '...' if len(n) > 25 else n for n in sizes.keys()]
-        ax1.barh(names, list(sizes.values()), color='steelblue')
-        ax1.set_xlabel('Number of Rows')
-        ax1.set_title('Dataset Sizes')
-        ax1.tick_params(axis='y', labelsize=8)
+        cats = list(categories.keys())
+        counts = [len(categories[c]) for c in cats]
+        colors = plt.cm.Set2(range(len(cats)))
+        bars = ax1.barh(cats, counts, color=colors)
+        ax1.set_xlabel('Number of Datasets')
+        ax1.set_title('Datasets by Category')
+        for bar, count in zip(bars, counts):
+            ax1.text(bar.get_width() + 0.1, bar.get_y() + bar.get_height()/2,
+                    str(count), va='center', fontsize=10)
 
-        # 2. Column counts
+        # 2. Data volume by category
         ax2 = axes[0, 1]
-        col_counts = {k: len(v.columns) for k, v in self.dataframes.items()}
-        ax2.barh(names, list(col_counts.values()), color='coral')
-        ax2.set_xlabel('Number of Columns')
-        ax2.set_title('Dataset Column Counts')
-        ax2.tick_params(axis='y', labelsize=8)
+        rows_by_cat = {cat: sum(len(self.data[k]) for k in keys)
+                       for cat, keys in categories.items()}
+        ax2.barh(list(rows_by_cat.keys()), list(rows_by_cat.values()), color=colors)
+        ax2.set_xlabel('Total Rows')
+        ax2.set_title('Data Volume by Category')
+        ax2.ticklabel_format(style='scientific', axis='x', scilimits=(0, 0))
 
-        # 3. Data types distribution (first dataset with most numeric cols)
+        # 3. Individual datasets with proper labels
         ax3 = axes[1, 0]
-        best_df_name = max(self.dataframes.keys(),
-                          key=lambda k: len(self.dataframes[k].select_dtypes(include=['number']).columns))
-        best_df = self.dataframes[best_df_name]
-        dtype_counts = best_df.dtypes.astype(str).value_counts()
-        ax3.pie(dtype_counts.values, labels=dtype_counts.index, autopct='%1.1f%%', startangle=90)
-        ax3.set_title(f'Data Types: {best_df_name[:30]}')
+        labels = [self.get_label(k) for k in self.data.keys()]
+        sizes = [len(df) for df in self.data.values()]
+        y_pos = range(len(labels))
+        ax3.barh(y_pos, sizes, color='steelblue')
+        ax3.set_yticks(y_pos)
+        ax3.set_yticklabels(labels, fontsize=7)
+        ax3.set_xlabel('Number of Rows')
+        ax3.set_title('Individual Dataset Sizes')
 
-        # 4. Missing data
+        # 4. Category pie
         ax4 = axes[1, 1]
-        missing = {k: (v.isnull().sum().sum() / (v.shape[0] * v.shape[1]) * 100)
-                   for k, v in self.dataframes.items()}
-        colors = ['green' if m < 5 else 'orange' if m < 20 else 'red' for m in missing.values()]
-        ax4.barh(names, list(missing.values()), color=colors)
-        ax4.set_xlabel('Missing Data (%)')
-        ax4.set_title('Data Completeness')
-        ax4.tick_params(axis='y', labelsize=8)
-        ax4.axvline(x=5, color='green', linestyle='--', alpha=0.5)
-        ax4.axvline(x=20, color='orange', linestyle='--', alpha=0.5)
+        ax4.pie(counts, labels=cats, autopct='%1.0f%%', colors=colors, startangle=90)
+        ax4.set_title('Distribution by Category')
 
         plt.tight_layout()
-        output_path = OUTPUT_DIR / 'datasets_overview.png'
-        plt.savefig(output_path, dpi=150, bbox_inches='tight')
+        path = OUTPUT_DIR / 'overview_favorite_datasets.png'
+        plt.savefig(path, dpi=150, bbox_inches='tight')
         plt.close()
-        print(f"  Saved: {output_path}")
+        print(f"  Saved: {path.name}")
 
-    def create_numeric_distributions(self):
-        """Create distribution plots for numeric columns."""
-        for name, df in self.dataframes.items():
-            numeric_cols = df.select_dtypes(include=['number']).columns[:6]  # Max 6 cols
-
-            if len(numeric_cols) == 0:
+    def create_distributions(self):
+        """Create distribution plots with labels from FAVORITE_DATASETS.md."""
+        for key, df in list(self.data.items())[:10]:
+            numeric = df.select_dtypes(include=['number']).columns[:6]
+            if len(numeric) < 2:
                 continue
 
-            n_cols = min(3, len(numeric_cols))
-            n_rows = (len(numeric_cols) + n_cols - 1) // n_cols
+            label = self.get_label(key)
+            category = self.get_category(key)
 
-            fig, axes = plt.subplots(n_rows, n_cols, figsize=(4 * n_cols, 3 * n_rows))
-            fig.suptitle(f'Distributions: {name[:50]}', fontsize=12, fontweight='bold')
+            n_cols = min(3, len(numeric))
+            n_rows = (len(numeric) + n_cols - 1) // n_cols
 
-            if n_rows == 1 and n_cols == 1:
-                axes = [[axes]]
-            elif n_rows == 1:
-                axes = [axes]
+            fig, axes = plt.subplots(n_rows, n_cols, figsize=(4*n_cols, 3*n_rows))
+            fig.suptitle(f'{label}\nCategory: {category}', fontsize=11, fontweight='bold')
 
-            for idx, col in enumerate(numeric_cols):
-                row, col_idx = idx // n_cols, idx % n_cols
-                ax = axes[row][col_idx] if n_rows > 1 else axes[0][col_idx]
+            axes_flat = axes.flatten() if hasattr(axes, 'flatten') else [axes]
 
+            for idx, col in enumerate(numeric):
+                ax = axes_flat[idx]
                 try:
                     data = df[col].dropna()
                     if len(data) > 0:
                         ax.hist(data, bins=30, color='steelblue', edgecolor='white', alpha=0.7)
-                        ax.set_title(col[:30], fontsize=9)
-                        ax.tick_params(labelsize=8)
-                except Exception:
-                    ax.text(0.5, 0.5, 'Cannot plot', ha='center', va='center')
+                        clean_col = col.replace('_', ' ').title()[:30]
+                        ax.set_title(clean_col, fontsize=9)
+                        ax.tick_params(labelsize=7)
+                except:
+                    pass
 
-            # Hide empty subplots
-            for idx in range(len(numeric_cols), n_rows * n_cols):
-                row, col_idx = idx // n_cols, idx % n_cols
-                ax = axes[row][col_idx] if n_rows > 1 else axes[0][col_idx]
-                ax.set_visible(False)
+            for idx in range(len(numeric), len(axes_flat)):
+                axes_flat[idx].set_visible(False)
 
             plt.tight_layout()
-            safe_name = "".join(c if c.isalnum() or c in '-_' else '_' for c in name)
-            output_path = OUTPUT_DIR / f'dist_{safe_name[:40]}.png'
-            plt.savefig(output_path, dpi=120, bbox_inches='tight')
+            safe = key[:45]
+            path = OUTPUT_DIR / f'dist_{safe}.png'
+            plt.savefig(path, dpi=120, bbox_inches='tight')
             plt.close()
-            print(f"  Saved: {output_path.name}")
+            print(f"  Saved: {path.name}")
 
-    def create_correlation_heatmaps(self):
-        """Create correlation heatmaps for numeric data."""
-        for name, df in self.dataframes.items():
-            numeric_df = df.select_dtypes(include=['number'])
-
-            if len(numeric_df.columns) < 2:
+    def create_correlations(self):
+        """Create correlation heatmaps with proper labels."""
+        for key, df in list(self.data.items())[:8]:
+            numeric = df.select_dtypes(include=['number'])
+            if len(numeric.columns) < 3:
                 continue
 
-            # Limit to 10 columns for readability
-            if len(numeric_df.columns) > 10:
-                numeric_df = numeric_df.iloc[:, :10]
+            if len(numeric.columns) > 10:
+                numeric = numeric.iloc[:, :10]
+
+            label = self.get_label(key)
+            category = self.get_category(key)
 
             try:
-                corr = numeric_df.corr()
+                corr = numeric.corr()
+                clean_cols = [c.replace('_', ' ').title()[:18] for c in corr.columns]
+                corr.columns = clean_cols
+                corr.index = clean_cols
 
                 fig, ax = plt.subplots(figsize=(10, 8))
                 sns.heatmap(corr, annot=True, cmap='coolwarm', center=0,
-                           fmt='.2f', ax=ax, annot_kws={'size': 8})
-                ax.set_title(f'Correlation: {name[:50]}', fontsize=12, fontweight='bold')
+                           fmt='.2f', ax=ax, annot_kws={'size': 7})
+                ax.set_title(f'{label}\nCorrelation Matrix ({category})', fontsize=11, fontweight='bold')
                 plt.xticks(rotation=45, ha='right', fontsize=8)
                 plt.yticks(fontsize=8)
 
                 plt.tight_layout()
-                safe_name = "".join(c if c.isalnum() or c in '-_' else '_' for c in name)
-                output_path = OUTPUT_DIR / f'corr_{safe_name[:40]}.png'
-                plt.savefig(output_path, dpi=120, bbox_inches='tight')
+                path = OUTPUT_DIR / f'corr_{key[:45]}.png'
+                plt.savefig(path, dpi=120, bbox_inches='tight')
                 plt.close()
-                print(f"  Saved: {output_path.name}")
+                print(f"  Saved: {path.name}")
             except Exception as e:
-                print(f"  Skipped correlation for {name}: {e}")
+                print(f"  Skip correlation for {key}: {e}")
 
-    def generate_report(self) -> str:
-        """Generate a text report of all analyses."""
-        report = []
-        report.append("=" * 70)
-        report.append("DATA ANALYSIS REPORT")
-        report.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-        report.append("=" * 70)
-        report.append(f"\nDatasets analyzed: {len(self.dataframes)}")
-        report.append(f"Data location: {DATA_DIR}")
-        report.append(f"Visualizations: {OUTPUT_DIR}")
+    def generate_report(self, stats: dict):
+        """Generate report with proper dataset labels."""
+        lines = [
+            "=" * 65,
+            "FAVORITE DATASETS ANALYSIS REPORT",
+            "Based on FAVORITE_DATASETS.md",
+            f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            "=" * 65,
+            "",
+            "DOWNLOAD SUMMARY",
+            f"  Found:      {stats.get('found', 0)}",
+            f"  Downloaded: {stats.get('downloaded', 0)}",
+            f"  Skipped:    {stats.get('skipped', 0)}",
+            f"  Failed:     {stats.get('failed', 0)}",
+            f"  Total Size: {stats.get('bytes', 0) / 1024 / 1024:.1f} MB",
+            "",
+            "DATASETS LOADED",
+        ]
 
-        total_rows = sum(len(df) for df in self.dataframes.values())
-        report.append(f"Total rows across all datasets: {total_rows:,}")
+        for key, df in self.data.items():
+            meta = self.meta.get(key, {})
+            label = meta.get('label', key)
+            lines.append(f"\n--- {label} ---")
+            lines.append(f"Category: {meta.get('category', 'Unknown')}")
+            lines.append(f"Source: {meta.get('org', 'Unknown')}")
+            lines.append(f"Rows: {len(df):,}")
+            lines.append(f"Columns: {len(df.columns)}")
 
-        for name, df in self.dataframes.items():
-            report.append(f"\n{'-' * 50}")
-            report.append(f"DATASET: {name}")
-            report.append(f"{'-' * 50}")
-            report.append(f"Rows: {len(df):,}")
-            report.append(f"Columns: {len(df.columns)}")
-            report.append(f"Memory: {df.memory_usage(deep=True).sum() / 1024 / 1024:.2f} MB")
+            numeric = df.select_dtypes(include=['number']).columns
+            if len(numeric) > 0:
+                lines.append(f"Numeric columns: {len(numeric)}")
+                for col in numeric[:3]:
+                    try:
+                        s = df[col].describe()
+                        lines.append(f"  {col}: mean={s['mean']:.2f}, min={s['min']:.2f}, max={s['max']:.2f}")
+                    except:
+                        pass
 
-            numeric_cols = df.select_dtypes(include=['number']).columns
-            if len(numeric_cols) > 0:
-                report.append(f"\nNumeric columns ({len(numeric_cols)}):")
-                for col in numeric_cols[:10]:
-                    stats = df[col].describe()
-                    report.append(f"  {col}: mean={stats['mean']:.2f}, std={stats['std']:.2f}, "
-                                f"min={stats['min']:.2f}, max={stats['max']:.2f}")
+        lines.append("\n" + "=" * 65)
 
-        report.append("\n" + "=" * 70)
-        report.append("END OF REPORT")
-        report.append("=" * 70)
-
-        report_text = '\n'.join(report)
-
-        # Save report
         report_path = OUTPUT_DIR / 'analysis_report.txt'
         with open(report_path, 'w') as f:
-            f.write(report_text)
-        print(f"  Saved: {report_path}")
+            f.write('\n'.join(lines))
+        print(f"  Saved: {report_path.name}")
 
-        return report_text
-
-
-# =============================================================================
-# MAIN PIPELINE
-# =============================================================================
 
 def main():
-    """Run the complete data pipeline."""
+    print("=" * 65)
+    print("FAVORITE DATASETS PIPELINE")
+    print("Based on FAVORITE_DATASETS.md")
+    print("=" * 65)
+    print(f"Data:    {DATA_DIR}")
+    print(f"Output:  {OUTPUT_DIR}")
+    print(f"Targets: {len(FAVORITE_DATASETS)} datasets")
+    print("=" * 65)
 
-    print("=" * 70)
-    print("DATA PIPELINE: Download, Analyze & Visualize")
-    print("=" * 70)
-    print(f"Data storage:      {DATA_DIR}")
-    print(f"Visualizations:    {OUTPUT_DIR}")
-    print(f"Date filter:       Last 6 months")
-    print("=" * 70)
+    # DOWNLOAD
+    print("\n[1] DOWNLOADING FROM data.gov")
+    print("-" * 45)
 
-    # -------------------------------------------------------------------------
-    # PHASE 1: DOWNLOAD
-    # -------------------------------------------------------------------------
-    print("\n[PHASE 1] DOWNLOADING DATA")
-    print("-" * 40)
+    dl = DataDownloader()
 
-    downloader = DataDownloader()
-    all_datasets = []
+    for config in FAVORITE_DATASETS:
+        print(f"\n>>> {config['label']}")
+        datasets = dl.search(config['query'], config['max'], months=6)
 
-    for topic in TOPICS:
-        print(f"\n>>> {topic['name']}")
-        datasets = downloader.search(
-            query=topic['query'],
-            tags=topic['tags'],
-            max_results=topic['max_datasets'],
-            months_back=6
-        )
-        print(f"  Found {len(datasets)} datasets")
+        if datasets:
+            print(f"  Found {len(datasets)} matches")
+            for ds in datasets:
+                dl.download(ds, config['name'], config['label'])
+        else:
+            print("  No recent data found")
 
-        for ds in datasets:
-            path = downloader.download_csv(ds)
-            if path:
-                all_datasets.append({'name': ds.get('name'), 'path': str(path)})
+    print(f"\n{'=' * 45}")
+    print(f"Downloaded: {dl.stats['downloaded']} files ({dl.stats['bytes']/1024/1024:.1f} MB)")
+    print(f"Skipped: {dl.stats['skipped']}, Failed: {dl.stats['failed']}")
 
-    print(f"\n>>> Downloaded {len(all_datasets)} CSV files to {DATA_DIR}")
-
-    # -------------------------------------------------------------------------
-    # PHASE 2: ANALYZE & VISUALIZE
-    # -------------------------------------------------------------------------
     if not HAS_ANALYTICS:
-        print("\n[PHASE 2] SKIPPED - Install pandas/matplotlib/seaborn")
+        print("\nSkipping analysis - install pandas/matplotlib/seaborn")
         return
 
-    print("\n[PHASE 2] ANALYZING DATA")
-    print("-" * 40)
+    # ANALYZE
+    print("\n[2] ANALYZING DATA")
+    print("-" * 45)
 
     analyzer = DataAnalyzer()
-    analyzer.load_all_csvs()
+    analyzer.load_data()
 
-    if not analyzer.dataframes:
+    if not analyzer.data:
         print("No data to analyze")
         return
 
-    print("\n[PHASE 3] CREATING VISUALIZATIONS")
-    print("-" * 40)
+    # VISUALIZE
+    print("\n[3] CREATING VISUALIZATIONS")
+    print("-" * 45)
 
-    print("\n>>> Overview charts...")
-    analyzer.create_overview_viz()
+    print("\nOverview chart...")
+    analyzer.create_overview()
 
-    print("\n>>> Distribution plots...")
-    analyzer.create_numeric_distributions()
+    print("\nDistribution plots...")
+    analyzer.create_distributions()
 
-    print("\n>>> Correlation heatmaps...")
-    analyzer.create_correlation_heatmaps()
+    print("\nCorrelation heatmaps...")
+    analyzer.create_correlations()
 
-    print("\n>>> Generating report...")
-    analyzer.generate_report()
+    print("\nAnalysis report...")
+    analyzer.generate_report(dl.stats)
 
-    # -------------------------------------------------------------------------
-    # SUMMARY
-    # -------------------------------------------------------------------------
-    print("\n" + "=" * 70)
+    # DONE
+    print("\n" + "=" * 65)
     print("PIPELINE COMPLETE")
-    print("=" * 70)
-    print(f"Data downloaded to:     {DATA_DIR}")
-    print(f"Visualizations saved:   {OUTPUT_DIR}")
+    print("=" * 65)
 
-    # List outputs
     viz_files = list(OUTPUT_DIR.glob("*.png"))
-    print(f"\nVisualization files ({len(viz_files)}):")
-    for f in viz_files:
-        print(f"  - {f.name}")
+    print(f"\nVisualizations: {len(viz_files)} files")
+    print(f"Location: {OUTPUT_DIR}")
 
     print("\nTo push to GitHub:")
     print("  cd /c/Users/Guest2/Personal/Github/opendata")
     print("  git add .")
-    print('  git commit -m "Add visualizations"')
+    print('  git commit -m "Add favorite datasets analysis"')
     print("  git push")
-    print("=" * 70)
+    print("=" * 65)
 
 
 if __name__ == "__main__":
